@@ -1,0 +1,89 @@
+package com.enduranceflow.core.ui.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.enduranceflow.onboarding.ui.OnboardingScreen
+import com.enduranceflow.calibration.ui.CalibrationScreen
+import com.enduranceflow.workout.ui.WorkoutListScreen
+import com.enduranceflow.profile.ui.ProfileScreen
+
+/**
+ * Navigation principale de l'application EnduranceFlow
+ *
+ * Architecture de navigation :
+ * - OnboardingScreen : Premier démarrage (collecte infos utilisateur)
+ * - CalibrationScreen : Tests VMA/FTP si nécessaire
+ * - WorkoutListScreen : Écran principal (liste des séances)
+ * - ProfileScreen : Profil athlète et paramètres
+ *
+ * Organisation par fonctionnalité :
+ * Chaque écran est dans son propre module (onboarding/, calibration/, workout/, profile/)
+ */
+@Composable
+fun AppNavigation() {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = Screen.Onboarding.route
+    ) {
+        // 🎯 Écran 1 : Onboarding (premier démarrage)
+        composable(route = Screen.Onboarding.route) {
+            OnboardingScreen(
+                onNavigateToCalibration = {
+                    navController.navigate(Screen.Calibration.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                },
+                onNavigateToWorkouts = {
+                    navController.navigate(Screen.WorkoutList.route) {
+                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 📊 Écran 2 : Calibration (tests VMA/FTP)
+        composable(route = Screen.Calibration.route) {
+            CalibrationScreen(
+                onNavigateToWorkouts = {
+                    navController.navigate(Screen.WorkoutList.route) {
+                        popUpTo(Screen.Calibration.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 🏃 Écran 3 : Liste des séances (écran principal)
+        composable(route = Screen.WorkoutList.route) {
+            WorkoutListScreen(
+                onNavigateToProfile = {
+                    navController.navigate(Screen.Profile.route)
+                }
+            )
+        }
+
+        // 👤 Écran 4 : Profil et paramètres
+        composable(route = Screen.Profile.route) {
+            ProfileScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+    }
+}
+
+/**
+ * Définition des routes de navigation
+ *
+ * Sealed class pour garantir la sécurité de type (pas d'erreur de route)
+ */
+sealed class Screen(val route: String) {
+    data object Onboarding : Screen("onboarding")
+    data object Calibration : Screen("calibration")
+    data object WorkoutList : Screen("workout_list")
+    data object Profile : Screen("profile")
+}
