@@ -1,0 +1,36 @@
+{
+  "project_identity": {
+    "name": "EnduranceFlow_Android",
+    "vision": "Coach d'endurance adaptatif et hybride (Indoor/Outdoor).",
+    "year_standard": "2026",
+    "language": "Français"
+  },
+  "user_stories": [
+    "Au démarrage, si je ne connais pas mon niveau (VMA/FTP), l'app génère une 'Semaine de Calibration' avec des tests.",
+    "Je peux basculer une séance en mode 'Intérieur' : les cibles changent (Vitesse -> Tapis, Allure -> Watts/Cardio).",
+    "L'IA adapte son ton : Empathique/Bienveillant si je suis une femme, Analytique/Factuel si je suis un homme.",
+    "Si mon téléphone ne supporte pas l'IA locale, l'app utilise une connexion sécurisée vers une IA Cloud (Fallback)."
+  ],
+  "tech_stack_rules": {
+    "platform": "Native Android",
+    "language": "Kotlin",
+    "ui_framework": "Jetpack Compose (Material 3)",
+    "architecture": "MVVM + Clean Architecture + Offline First",
+    "local_database": "Room (SQLite)",
+    "data_source": "Android Health Connect",
+    "ai_engine": "Strategy Pattern: Priority = Gemini Nano (On-Device). Fallback = Gemini Flash API (Cloud)",
+    "dependency_injection": "Hilt"
+  },
+  "core_entities": [
+    "AthleteProfile (Gender, VMA, FTP, MaxHR)",
+    "EquipmentConfig (HasPowerMeter: Boolean)",
+    "DailyWorkout (TargetType: POWER, PACE, HR, SPEED)",
+    "AvailabilitySlot (DayOfWeek, Sport)",
+    "SessionFeedback (RPE)"
+  ],
+  "avoid_list": [
+    "Ne jamais envoyer d'identifiants personnels (Nom, Email) à l'IA Cloud.",
+    "Ne pas proposer de Watts en vélo si l'utilisateur n'a pas de capteur de puissance (Fallback sur Fréquence Cardiaque).",
+    "Ne pas bloquer l'utilisateur s'il ne connaît pas sa VMA (lancer le protocole de test)."
+  ]
+}
