@@ -1,5 +1,6 @@
 package com.enduranceflow.ai.data
 
+import com.enduranceflow.BuildConfig
 import com.enduranceflow.ai.domain.AIEngine
 import com.enduranceflow.core.domain.model.Gender
 import com.enduranceflow.core.domain.model.Sport
@@ -37,9 +38,9 @@ import javax.inject.Inject
  */
 class GeminiFlashEngine @Inject constructor() : AIEngine {
 
-    // Clé API Gemini (à configurer dans local.properties ou secrets)
+    // Clé API Gemini chargée depuis local.properties via BuildConfig
     // Pour production : Utiliser Android Keystore + Secrets Gradle Plugin
-    private val apiKey = "YOUR_GEMINI_API_KEY" // TODO: Configurer via BuildConfig
+    private val apiKey = BuildConfig.GEMINI_API_KEY
 
     // Instance du modèle Gemini Flash
     private var generativeModel: GenerativeModel? = null

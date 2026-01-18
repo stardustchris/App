@@ -20,6 +20,17 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Load Gemini API Key from local.properties
+        val properties = java.util.Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            properties.load(localPropertiesFile.inputStream())
+        }
+
+        // Inject API key into BuildConfig
+        val geminiApiKey = properties.getProperty("GEMINI_API_KEY") ?: "YOUR_GEMINI_API_KEY"
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }
 
     buildTypes {
@@ -43,6 +54,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     composeOptions {
