@@ -67,11 +67,11 @@ class AIRepository @Inject constructor(
 
             // 4. Récupérer les créneaux de disponibilité
             val availabilitySlots = availabilityRepository.getAllActiveSlots().first()
-            val availableDays = availabilitySlots.map { it.dayOfWeek.name }
-
-            if (availableDays.isEmpty()) {
-                // Pas de disponibilités configurées
-                return emptyList()
+            val availableDays = if (availabilitySlots.isEmpty()) {
+                // Disponibilités par défaut si non configurées : Lundi, Mercredi, Vendredi
+                listOf("MONDAY", "WEDNESDAY", "FRIDAY")
+            } else {
+                availabilitySlots.map { it.dayOfWeek.name }
             }
 
             // 5. Analyser l'état de fatigue
@@ -95,8 +95,9 @@ class AIRepository @Inject constructor(
             )
 
             // 8. Enregistrer les séances en base de données
-            // TODO: Implémenter l'enregistrement batch
-            // workoutRepository.createWorkouts(generatedWorkouts)
+            if (generatedWorkouts.isNotEmpty()) {
+                workoutRepository.createWorkouts(generatedWorkouts)
+            }
 
             generatedWorkouts
 

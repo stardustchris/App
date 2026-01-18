@@ -244,28 +244,108 @@ class GeminiFlashEngine @Inject constructor() : AIEngine {
     /**
      * Parse la réponse de l'IA et crée les entités DailyWorkoutEntity
      *
-     * TODO: Implémenter un parser robuste pour extraire les séances
+     * Format attendu de Gemini (par séance) :
+     * JOUR: Lundi
+     * SPORT: RUNNING
+     * TITRE: Endurance Fondamentale
+     * DESCRIPTION: 40 min Zone 2 @ 60-70% VMA
+     * DUREE: 60
+     * CIBLE: PACE
+     * VALEUR: 5.5
      */
     private fun parseWorkoutsFromResponse(response: String, availableDays: List<String>): List<DailyWorkoutEntity> {
-        // TODO: Implémenter le parsing de la réponse IA
-        // Pour l'instant, retourne une séance d'exemple si disponibilité le lundi
+        val workouts = mutableListOf<DailyWorkoutEntity>()
 
-        return if (availableDays.contains("MONDAY")) {
-            listOf(
-                DailyWorkoutEntity(
-                    date = "2026-01-20", // TODO: Calculer la vraie date
-                    sport = Sport.RUNNING,
-                    title = "VMA Courte",
-                    description = "8x400m @ 100% VMA - Récup 1'30 entre chaque",
-                    targetType = TargetType.PACE,
-                    isIndoor = false,
-                    durationMinutes = 45,
-                    targetValue = 18.5
-                )
+        try {
+            // Découper la réponse en blocs (un bloc = une séance)
+            val workoutBlocks = response.split("JOUR:").filter { it.trim().isNotEmpty() }
+
+            // Map des jours FR → EN pour conversion
+            val dayMap = mapOf(
+                "lundi" to "MONDAY", "monday" to "MONDAY",
+                "mardi" to "TUESDAY", "tuesday" to "TUESDAY",
+                "mercredi" to "WEDNESDAY", "wednesday" to "WEDNESDAY",
+                "jeudi" to "THURSDAY", "thursday" to "THURSDAY",
+                "vendredi" to "FRIDAY", "friday" to "FRIDAY",
+                "samedi" to "SATURDAY", "saturday" to "SATURDAY",
+                "dimanche" to "SUNDAY", "sunday" to "SUNDAY"
             )
-        } else {
-            emptyList()
+
+            workoutBlocks.forEach { block ->
+                try {
+                    // Extraire les champs
+                    val day = extractField(block, "JOUR")?.lowercase()?.trim()
+                    val sport = extractField(block, "SPORT")?.uppercase()?.trim()
+                    val title = extractField(block, "TITRE") ?: extractField(block, "TITLE") ?: "Séance"
+                    val description = extractField(block, "DESCRIPTION") ?: ""
+                    val duration = extractField(block, "DUREE")?.toIntOrNull()
+                        ?: extractField(block, "DURATION")?.toIntOrNull()
+                        ?: 60
+                    val targetType = extractField(block, "CIBLE")?.uppercase()?.trim()
+                        ?: extractField(block, "TARGET")?.uppercase()?.trim()
+                    val targetValue = extractField(block, "VALEUR")?.toDoubleOrNull()
+                        ?: extractField(block, "VALUE")?.toDoubleOrNull()
+                        ?: 0.0
+
+                    // Valider les champs obligatoires
+                    if (day != null && sport != null && targetType != null) {
+                        val dayOfWeek = dayMap[day]
+
+                        // Vérifier que le jour fait partie des disponibilités
+                        if (dayOfWeek != null && availableDays.contains(dayOfWeek)) {
+                            val workout = DailyWorkoutEntity(
+                                date = getNextDateForDay(dayOfWeek),
+                                sport = Sport.valueOf(sport),
+                                title = title,
+                                description = description,
+                                targetType = TargetType.valueOf(targetType),
+                                isIndoor = false,
+                                durationMinutes = duration,
+                                targetValue = targetValue
+                            )
+                            workouts.add(workout)
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Ignorer les blocs mal formatés
+                }
+            }
+
+        } catch (e: Exception) {
+            // Parsing échoué, retourner liste vide
         }
+
+        return workouts
+    }
+
+    /**
+     * Extrait la valeur d'un champ depuis un bloc de texte
+     * Format: "CHAMP: valeur"
+     */
+    private fun extractField(block: String, fieldName: String): String? {
+        val pattern = "$fieldName:\\s*(.+?)(?=\\n[A-Z]+:|$)".toRegex(RegexOption.DOT_MATCHES_ALL)
+        return pattern.find(block)?.groupValues?.get(1)?.trim()
+    }
+
+    /**
+     * Calcule la prochaine date pour un jour donné (ex: prochain lundi)
+     * Format retourné: YYYY-MM-DD
+     */
+    private fun getNextDateForDay(dayOfWeek: String): String {
+        // Pour l'instant, retourne une date fixe
+        // TODO: Implémenter le calcul de la vraie date selon le jour de la semaine
+        val today = java.time.LocalDate.now()
+        val daysToAdd = when(dayOfWeek) {
+            "MONDAY" -> 1
+            "TUESDAY" -> 2
+            "WEDNESDAY" -> 3
+            "THURSDAY" -> 4
+            "FRIDAY" -> 5
+            "SATURDAY" -> 6
+            "SUNDAY" -> 7
+            else -> 1
+        }
+        return today.plusDays(daysToAdd.toLong()).toString()
     }
 
     /**

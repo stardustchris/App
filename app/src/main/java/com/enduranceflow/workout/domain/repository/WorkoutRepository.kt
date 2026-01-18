@@ -95,6 +95,25 @@ class WorkoutRepository @Inject constructor(
     }
 
     /**
+     * Crée plusieurs séances en batch (utilisé par l'IA)
+     *
+     * @param workouts Liste des séances à créer
+     * @return Nombre de séances créées
+     *
+     * Utilisé par AIRepository pour enregistrer les séances générées par l'IA
+     */
+    suspend fun createWorkouts(workouts: List<DailyWorkoutEntity>): Int {
+        return try {
+            workouts.forEach { workout ->
+                dailyWorkoutDao.insertWorkout(workout)
+            }
+            workouts.size
+        } catch (e: Exception) {
+            0
+        }
+    }
+
+    /**
      * Marque une séance comme complétée
      *
      * @param workoutId ID de la séance

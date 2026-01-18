@@ -29,7 +29,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class WorkoutListViewModel @Inject constructor(
-    private val workoutRepository: WorkoutRepository
+    private val workoutRepository: WorkoutRepository,
+    private val aiRepository: com.enduranceflow.ai.domain.AIRepository
 ) : ViewModel() {
 
     // État de l'UI
@@ -188,25 +189,43 @@ class WorkoutListViewModel @Inject constructor(
     }
 
     /**
-     * Génère de nouvelles séances pour la semaine
-     * (Appel à l'IA - TODO: Implémenter l'intégration Gemini)
+     * Génère de nouvelles séances pour la semaine via l'IA Gemini
      *
-     * L'IA devrait générer des séances en tenant compte :
+     * L'IA génère des séances en tenant compte :
      * - Du profil athlète (VMA, FTP, Genre)
      * - De la configuration équipement (capteur de puissance)
      * - Des disponibilités (AvailabilitySlots)
      * - De l'état de fatigue (feedbacks récents)
      * - Du ton adapté (Empathique/Analytique selon le genre)
+     *
+     * Algorithme :
+     * 1. Active le loading state
+     * 2. Appelle AIRepository.generateWeeklyWorkouts()
+     * 3. L'AIRepository récupère le profil, disponibilités, fatigue
+     * 4. L'AIEngineFactory sélectionne Gemini Nano ou Flash
+     * 5. Les séances générées sont automatiquement sauvegardées en BDD
+     * 6. Le Flow réactif met à jour l'UI automatiquement
      */
     fun generateWeeklyWorkouts() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                // TODO: Appeler l'IA (Gemini Nano ou Flash) pour générer les séances
-                // Pour l'instant, on crée une séance d'exemple
+                // Appel à l'IA via AIRepository
+                val generatedWorkouts = aiRepository.generateWeeklyWorkouts()
 
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                if (generatedWorkouts.isEmpty()) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Aucune séance générée. Vérifie ton profil et tes disponibilités."
+                    )
+                } else {
+                    // Succès : les séances sont automatiquement affichées via le Flow
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = null
+                    )
+                }
 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
