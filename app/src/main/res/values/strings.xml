@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EnduranceFlow</string>
+
+    <!-- Onboarding -->
+    <string name="welcome_title">Bienvenue sur EnduranceFlow</string>
+    <string name="welcome_subtitle">Votre coach d\'endurance adaptatif</string>
+
+    <!-- Calibration -->
+    <string name="calibration_title">Semaine de Calibration</string>
+    <string name="vma_test">Test VMA</string>
+    <string name="ftp_test">Test FTP</string>
+
+    <!-- Workout -->
+    <string name="workout_mode_outdoor">Extérieur</string>
+    <string name="workout_mode_indoor">Intérieur</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Mon Profil</string>
+    <string name="equipment_config">Configuration équipement</string>
+
+    <!-- AI -->
+    <string name="ai_mode_local">IA Locale (Gemini Nano)</string>
+    <string name="ai_mode_cloud">IA Cloud (Gemini Flash)</string>
+</resources>
