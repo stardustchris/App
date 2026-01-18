@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "EnduranceFlow"
+rootProject.name = "Endurance Flow"
 include(":app")

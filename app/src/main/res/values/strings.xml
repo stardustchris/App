@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">EnduranceFlow</string>
+    <string name="app_name">Endurance Flow</string>
 
     <!-- Onboarding -->
-    <string name="welcome_title">Bienvenue sur EnduranceFlow</string>
+    <string name="welcome_title">Bienvenue sur Endurance Flow</string>
     <string name="welcome_subtitle">Votre coach d\'endurance adaptatif</string>
 
     <!-- Calibration -->
