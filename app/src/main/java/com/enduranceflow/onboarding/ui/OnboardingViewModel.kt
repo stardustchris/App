@@ -3,6 +3,7 @@ package com.enduranceflow.onboarding.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.enduranceflow.core.domain.model.Gender
+import com.enduranceflow.core.domain.model.Sport
 import com.enduranceflow.core.domain.repository.AvailabilityRepository
 import com.enduranceflow.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
 import javax.inject.Inject
 
 /**
@@ -70,12 +72,42 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
+     * Toggle un sport dans la liste des sports sélectionnés
+     *
+     * @param sport Le sport à ajouter/retirer (RUNNING ou CYCLING)
+     */
+    fun onSportToggled(sport: Sport) {
+        val currentSports = _uiState.value.selectedSports.toMutableSet()
+        if (currentSports.contains(sport)) {
+            currentSports.remove(sport)
+        } else {
+            currentSports.add(sport)
+        }
+        _uiState.value = _uiState.value.copy(selectedSports = currentSports)
+    }
+
+    /**
+     * Toggle un jour dans la liste des jours disponibles
+     *
+     * @param day Le jour à ajouter/retirer
+     */
+    fun onDayToggled(day: DayOfWeek) {
+        val currentDays = _uiState.value.selectedDays.toMutableSet()
+        if (currentDays.contains(day)) {
+            currentDays.remove(day)
+        } else {
+            currentDays.add(day)
+        }
+        _uiState.value = _uiState.value.copy(selectedDays = currentDays)
+    }
+
+    /**
      * Finalise l'onboarding et crée le profil initial
      *
      * Actions :
      * 1. Crée le profil AthleteProfile
      * 2. Crée la configuration équipement
-     * 3. Crée le planning de disponibilités par défaut
+     * 3. Crée le planning de disponibilités personnalisé (sports + jours choisis)
      * 4. Détermine si calibration nécessaire
      *
      * @param onComplete Callback appelé à la fin (navigation)
@@ -102,8 +134,16 @@ class OnboardingViewModel @Inject constructor(
                     hasHomeTrainer = false
                 )
 
-                // 3. Créer le planning de disponibilités par défaut
-                availabilityRepository.createDefaultWeeklyPlan()
+                // 3. Créer le planning personnalisé basé sur les choix utilisateur
+                if (state.selectedSports.isNotEmpty() && state.selectedDays.isNotEmpty()) {
+                    availabilityRepository.createCustomWeeklyPlan(
+                        selectedSports = state.selectedSports,
+                        selectedDays = state.selectedDays
+                    )
+                } else {
+                    // Fallback : créer le planning par défaut si les choix ne sont pas renseignés
+                    availabilityRepository.createDefaultWeeklyPlan()
+                }
 
                 // 4. Vérifier si calibration nécessaire
                 val needsCalibration = state.knownVMA == null || state.knownFTP == null
@@ -131,6 +171,8 @@ class OnboardingViewModel @Inject constructor(
 data class OnboardingUiState(
     val selectedGender: Gender? = null,
     val hasPowerMeter: Boolean = false,
+    val selectedSports: Set<Sport> = emptySet(),
+    val selectedDays: Set<DayOfWeek> = emptySet(),
     val knownVMA: Double? = null,
     val knownFTP: Int? = null,
     val isLoading: Boolean = false,

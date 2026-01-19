@@ -84,6 +84,15 @@ class AIRepository @Inject constructor(
                 uniqueDays
             }
 
+            // Extraire les sports pratiqués depuis les disponibilités
+            val availableSports = if (availabilitySlots.isEmpty()) {
+                // Par défaut : Running et Cycling
+                listOf("RUNNING", "CYCLING")
+            } else {
+                availabilitySlots.map { it.sport.name }.distinct()
+            }
+            android.util.Log.d("AIRepository", "Available sports: $availableSports")
+
             // 5. Analyser l'état de fatigue
             val averageRPE = workoutRepository.getAverageRPE(limit = 7)
             val isFatigued = workoutRepository.isFatigued(limit = 7)
@@ -103,6 +112,7 @@ class AIRepository @Inject constructor(
                 gender = profile.gender,
                 hasPowerMeter = hasPowerMeter,
                 availableDays = availableDays,
+                availableSports = availableSports,
                 averageRPE = averageRPE,
                 isFatigued = isFatigued,
                 needsProgression = needsProgression

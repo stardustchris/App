@@ -85,15 +85,16 @@ class MistralEngine @Inject constructor() : AIEngine {
         gender: Gender,
         hasPowerMeter: Boolean,
         availableDays: List<String>,
+        availableSports: List<String>,
         averageRPE: Double?,
         isFatigued: Boolean,
         needsProgression: Boolean
     ): List<DailyWorkoutEntity> {
-        android.util.Log.d("MistralEngine", "generateWeeklyWorkouts() called - vma=$vma, ftp=$ftp, availableDays=$availableDays")
+        android.util.Log.d("MistralEngine", "generateWeeklyWorkouts() called - vma=$vma, ftp=$ftp, availableDays=$availableDays, availableSports=$availableSports")
 
         val prompt = buildWorkoutGenerationPrompt(
             vma, ftp, gender, hasPowerMeter,
-            availableDays, averageRPE, isFatigued, needsProgression
+            availableDays, availableSports, averageRPE, isFatigued, needsProgression
         )
 
         return try {
@@ -268,6 +269,7 @@ class MistralEngine @Inject constructor() : AIEngine {
         gender: Gender,
         hasPowerMeter: Boolean,
         availableDays: List<String>,
+        availableSports: List<String>,
         averageRPE: Double?,
         isFatigued: Boolean,
         needsProgression: Boolean
@@ -276,6 +278,18 @@ class MistralEngine @Inject constructor() : AIEngine {
             "empathique et bienveillant"
         } else {
             "analytique et factuel"
+        }
+
+        // Déterminer quels sports générer
+        val sportsText = when {
+            availableSports.contains("RUNNING") && availableSports.contains("CYCLING") ->
+                "Génère un mélange équilibré de séances de RUNNING et CYCLING."
+            availableSports.contains("RUNNING") ->
+                "Génère UNIQUEMENT des séances de RUNNING (course à pied)."
+            availableSports.contains("CYCLING") ->
+                "Génère UNIQUEMENT des séances de CYCLING (vélo)."
+            else ->
+                "Génère un mélange équilibré de séances de RUNNING et CYCLING."
         }
 
         return """
@@ -291,9 +305,12 @@ class MistralEngine @Inject constructor() : AIEngine {
             - Fatigue détectée : ${if (isFatigued) "Oui (>=3 séances difficiles)" else "Non"}
             - Besoin de progression : ${if (needsProgression) "Oui (>=3 séances faciles)" else "Non"}
 
+            Sports pratiqués : ${availableSports.joinToString(", ")}
             Disponibilités cette semaine : ${availableDays.distinct().joinToString(", ")}
 
-            IMPORTANT : Réponds UNIQUEMENT avec le format structuré ci-dessous, SANS introduction ni conclusion.
+            IMPORTANT : $sportsText
+
+            Réponds UNIQUEMENT avec le format structuré ci-dessous, SANS introduction ni conclusion.
 
             Pour chaque jour disponible, crée une séance en suivant EXACTEMENT ce format :
 
@@ -315,7 +332,7 @@ class MistralEngine @Inject constructor() : AIEngine {
 
             Règles strictes :
             - Un bloc par séance
-            - SPORT = RUNNING ou CYCLING (majuscules)
+            - SPORT = ${availableSports.joinToString(" ou ")} UNIQUEMENT (majuscules)
             - CIBLE = PACE (course), SPEED (tapis), POWER (vélo avec capteur), HEART_RATE (vélo sans capteur)
             - DUREE = nombre entier de minutes
             - VALEUR = nombre décimal (vitesse km/h, puissance watts, ou FC bpm)

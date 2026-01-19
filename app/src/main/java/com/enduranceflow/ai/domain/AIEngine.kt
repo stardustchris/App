@@ -59,6 +59,7 @@ interface AIEngine {
      * @param gender Genre de l'athlète (influence le ton)
      * @param hasPowerMeter Capteur de puissance disponible ?
      * @param availableDays Jours de disponibilité dans la semaine
+     * @param availableSports Sports pratiqués par l'utilisateur (RUNNING, CYCLING)
      * @param averageRPE RPE moyen récent (indicateur de fatigue)
      * @param isFatigued L'athlète est fatigué ? (>= 3 séances "difficiles")
      * @param needsProgression L'athlète trouve ça trop facile ?
@@ -78,6 +79,7 @@ interface AIEngine {
         gender: Gender,
         hasPowerMeter: Boolean,
         availableDays: List<String>, // Format: "MONDAY", "WEDNESDAY", etc.
+        availableSports: List<String>, // Format: "RUNNING", "CYCLING"
         averageRPE: Double?,
         isFatigued: Boolean,
         needsProgression: Boolean
