@@ -110,15 +110,22 @@ class GeminiFlashEngine @Inject constructor() : AIEngine {
         )
 
         return try {
-            val response = generativeModel?.generateContent(prompt)
-            val workoutsText = response?.text ?: return emptyList()
+            android.util.Log.d("GeminiFlashEngine", "Generating workouts with prompt: ${prompt.take(200)}...")
 
-            // TODO: Parser la réponse de l'IA et créer les entités DailyWorkoutEntity
-            // Pour l'instant, retourne une séance d'exemple
+            val response = generativeModel?.generateContent(prompt)
+            val workoutsText = response?.text ?: run {
+                android.util.Log.e("GeminiFlashEngine", "Response is null or empty")
+                return emptyList()
+            }
+
+            android.util.Log.d("GeminiFlashEngine", "Response received: ${workoutsText.take(200)}...")
+
+            // Parser la réponse de l'IA et créer les entités DailyWorkoutEntity
             parseWorkoutsFromResponse(workoutsText, availableDays)
 
         } catch (e: Exception) {
-            // Erreur API → Retourner séances par défaut
+            // Erreur API → Logger l'erreur et retourner liste vide
+            android.util.Log.e("GeminiFlashEngine", "Error generating workouts: ${e.message}", e)
             emptyList()
         }
     }
