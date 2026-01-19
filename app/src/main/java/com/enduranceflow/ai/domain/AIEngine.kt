@@ -6,11 +6,9 @@ import com.enduranceflow.workout.data.entity.DailyWorkoutEntity
 /**
  * Interface AIEngine - Strategy Pattern
  *
- * Contrat pour les moteurs d'IA (Gemini Nano / Gemini Flash)
+ * Contrat pour les moteurs d'IA (Mistral AI)
  *
- * Tech Stack Rule (context.json) :
- * "Strategy Pattern: Priority = Gemini Nano (On-Device).
- *  Fallback = Gemini Flash API (Cloud)"
+ * Simplifié : Utilise uniquement Mistral AI comme moteur cloud
  *
  * Responsabilités :
  * - Générer des séances d'entraînement personnalisées
@@ -18,9 +16,8 @@ import com.enduranceflow.workout.data.entity.DailyWorkoutEntity
  * - Analyser les feedbacks pour ajuster l'intensité
  * - Fournir des encouragements contextuels
  *
- * Deux implémentations :
- * 1. GeminiNanoEngine : IA locale (on-device)
- * 2. GeminiFlashEngine : IA cloud (fallback)
+ * Implémentation actuelle :
+ * - MistralEngine : IA cloud française 🇫🇷
  */
 interface AIEngine {
 
@@ -28,8 +25,7 @@ interface AIEngine {
      * Type de moteur IA
      */
     enum class EngineType {
-        GEMINI_NANO,    // IA locale (on-device)
-        GEMINI_FLASH    // IA cloud (fallback)
+        GEMINI_FLASH    // Réutilisé pour cloud AI (Mistral)
     }
 
     /**
@@ -38,12 +34,11 @@ interface AIEngine {
     fun getEngineType(): EngineType
 
     /**
-     * Vérifie si le moteur est disponible sur cet appareil
+     * Vérifie si le moteur est disponible
      *
      * @return true si le moteur peut être utilisé
      *
-     * Gemini Nano : Disponible uniquement sur certains appareils récents
-     * Gemini Flash : Toujours disponible (nécessite Internet)
+     * Mistral AI : Toujours disponible (nécessite Internet et clé API)
      */
     suspend fun isAvailable(): Boolean
 
@@ -52,8 +47,7 @@ interface AIEngine {
      *
      * @return true si l'initialisation a réussi
      *
-     * Gemini Nano : Télécharge le modèle si nécessaire
-     * Gemini Flash : Valide la clé API
+     * Mistral AI : Valide la clé API
      */
     suspend fun initialize(): Boolean
 

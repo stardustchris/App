@@ -12,13 +12,13 @@ import javax.inject.Singleton
  * Repository pour gérer les interactions avec l'IA
  *
  * Responsabilités :
- * - Orchestrer l'utilisation de l'AIEngine (Nano ou Flash)
+ * - Orchestrer l'utilisation de l'AIEngine (Mistral AI)
  * - Combiner les données des autres repositories pour l'IA
- * - Gérer les erreurs et fallbacks
+ * - Gérer les erreurs et fournir des fallbacks
  * - Fournir une API simple aux ViewModels
  *
  * Architecture :
- * AIRepository → AIEngineFactory → (GeminiNanoEngine | GeminiFlashEngine)
+ * AIRepository → AIEngineFactory → MistralEngine
  *
  * Injecté par Hilt dans les ViewModels
  */
