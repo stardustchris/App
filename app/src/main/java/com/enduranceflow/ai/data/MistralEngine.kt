@@ -366,7 +366,10 @@ class MistralEngine @Inject constructor() : AIEngine {
 
                     // Extraire le jour depuis la première ligne (car on a split par "JOUR:")
                     // Le bloc commence par: " Friday\nSPORT: RUNNING\n..."
-                    val day = block.lines().firstOrNull()?.trim()?.lowercase()
+                    val lines = block.lines()
+                    android.util.Log.d("MistralEngine", "Block has ${lines.size} lines, first 3: [${lines.take(3).joinToString(" | ")}]")
+                    val day = lines.firstOrNull { it.trim().isNotEmpty() }?.trim()?.lowercase()
+                    android.util.Log.d("MistralEngine", "Extracted day from first non-empty line: '$day'")
 
                     // Extraire les autres champs normalement
                     val sport = extractField(block, "SPORT")?.uppercase()?.trim()
