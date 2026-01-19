@@ -348,7 +348,7 @@ class MistralEngine @Inject constructor() : AIEngine {
             val workoutBlocks = response.split("JOUR:").filter { it.trim().isNotEmpty() }
             android.util.Log.d("MistralEngine", "Found ${workoutBlocks.size} workout blocks")
 
-            // Map des jours FR → EN pour conversion
+            // Map des jours FR + EN → EN pour conversion
             val dayMap = mapOf(
                 "lundi" to "MONDAY", "monday" to "MONDAY",
                 "mardi" to "TUESDAY", "tuesday" to "TUESDAY",
@@ -364,8 +364,11 @@ class MistralEngine @Inject constructor() : AIEngine {
                     android.util.Log.d("MistralEngine", "--- Parsing block $index ---")
                     android.util.Log.d("MistralEngine", "Block content: ${block.take(150)}...")
 
-                    // Extraire les champs
-                    val day = extractField(block, "JOUR")?.lowercase()?.trim()
+                    // Extraire le jour depuis la première ligne (car on a split par "JOUR:")
+                    // Le bloc commence par: " Friday\nSPORT: RUNNING\n..."
+                    val day = block.lines().firstOrNull()?.trim()?.lowercase()
+
+                    // Extraire les autres champs normalement
                     val sport = extractField(block, "SPORT")?.uppercase()?.trim()
                     val title = extractField(block, "TITRE") ?: extractField(block, "TITLE") ?: "Séance"
                     val description = extractField(block, "DESCRIPTION") ?: ""
