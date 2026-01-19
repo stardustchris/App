@@ -78,8 +78,10 @@ class AIRepository @Inject constructor(
                 android.util.Log.d("AIRepository", "No availability slots found - using defaults: Mon, Wed, Fri")
                 listOf("MONDAY", "WEDNESDAY", "FRIDAY")
             } else {
-                android.util.Log.d("AIRepository", "Availability slots: ${availabilitySlots.map { it.dayOfWeek.name }}")
-                availabilitySlots.map { it.dayOfWeek.name }
+                // Récupérer les jours UNIQUES (pas de doublons)
+                val uniqueDays = availabilitySlots.map { it.dayOfWeek.name }.distinct()
+                android.util.Log.d("AIRepository", "Availability slots: $uniqueDays")
+                uniqueDays
             }
 
             // 5. Analyser l'état de fatigue

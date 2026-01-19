@@ -291,20 +291,36 @@ class MistralEngine @Inject constructor() : AIEngine {
             - Fatigue détectée : ${if (isFatigued) "Oui (>=3 séances difficiles)" else "Non"}
             - Besoin de progression : ${if (needsProgression) "Oui (>=3 séances faciles)" else "Non"}
 
-            Disponibilités cette semaine : ${availableDays.joinToString(", ")}
+            Disponibilités cette semaine : ${availableDays.distinct().joinToString(", ")}
 
-            Génère un programme d'entraînement structuré pour cette semaine.
-            Pour chaque jour disponible, crée une séance avec ce format exact :
+            IMPORTANT : Réponds UNIQUEMENT avec le format structuré ci-dessous, SANS introduction ni conclusion.
 
-            JOUR: [Lundi/Mardi/etc.]
-            SPORT: [RUNNING ou CYCLING]
-            TITRE: [Titre court de la séance]
-            DESCRIPTION: [Description détaillée avec répétitions, intensité, récupération]
-            DUREE: [Durée en minutes, nombre entier]
-            CIBLE: [PACE si running outdoor, SPEED si running indoor, POWER si vélo avec capteur, HEART_RATE si vélo sans capteur]
-            VALEUR: [Valeur numérique de la cible]
+            Pour chaque jour disponible, crée une séance en suivant EXACTEMENT ce format :
 
-            Adapte l'intensité selon l'état de fatigue et besoin de progression.
+            JOUR: Lundi
+            SPORT: RUNNING
+            TITRE: Endurance Fondamentale
+            DESCRIPTION: 40 minutes en zone 2 (60-70% VMA). Allure confortable permettant de parler.
+            DUREE: 60
+            CIBLE: PACE
+            VALEUR: 5.5
+
+            JOUR: Mercredi
+            SPORT: CYCLING
+            TITRE: Seuil FTP
+            DESCRIPTION: 10 min échauffement + 3x10 min @ FTP avec 5 min récup + 10 min retour au calme
+            DUREE: 75
+            CIBLE: POWER
+            VALEUR: 273
+
+            Règles strictes :
+            - Un bloc par séance
+            - SPORT = RUNNING ou CYCLING (majuscules)
+            - CIBLE = PACE (course), SPEED (tapis), POWER (vélo avec capteur), HEART_RATE (vélo sans capteur)
+            - DUREE = nombre entier de minutes
+            - VALEUR = nombre décimal (vitesse km/h, puissance watts, ou FC bpm)
+
+            Génère maintenant les séances pour les jours disponibles.
         """.trimIndent()
     }
 
@@ -324,8 +340,13 @@ class MistralEngine @Inject constructor() : AIEngine {
         val workouts = mutableListOf<DailyWorkoutEntity>()
 
         try {
+            android.util.Log.d("MistralEngine", "=== PARSING WORKOUTS ===")
+            android.util.Log.d("MistralEngine", "Full response length: ${response.length} chars")
+            android.util.Log.d("MistralEngine", "Response preview: ${response.take(300)}...")
+
             // Découper la réponse en blocs (un bloc = une séance)
             val workoutBlocks = response.split("JOUR:").filter { it.trim().isNotEmpty() }
+            android.util.Log.d("MistralEngine", "Found ${workoutBlocks.size} workout blocks")
 
             // Map des jours FR → EN pour conversion
             val dayMap = mapOf(
@@ -338,8 +359,11 @@ class MistralEngine @Inject constructor() : AIEngine {
                 "dimanche" to "SUNDAY", "sunday" to "SUNDAY"
             )
 
-            workoutBlocks.forEach { block ->
+            workoutBlocks.forEachIndexed { index, block ->
                 try {
+                    android.util.Log.d("MistralEngine", "--- Parsing block $index ---")
+                    android.util.Log.d("MistralEngine", "Block content: ${block.take(150)}...")
+
                     // Extraire les champs
                     val day = extractField(block, "JOUR")?.lowercase()?.trim()
                     val sport = extractField(block, "SPORT")?.uppercase()?.trim()
@@ -354,12 +378,15 @@ class MistralEngine @Inject constructor() : AIEngine {
                         ?: extractField(block, "VALUE")?.toDoubleOrNull()
                         ?: 0.0
 
+                    android.util.Log.d("MistralEngine", "Extracted: day=$day, sport=$sport, title=$title, targetType=$targetType")
+
                     // Valider les champs obligatoires
                     if (day != null && sport != null && targetType != null) {
                         val dayOfWeek = dayMap[day]
+                        android.util.Log.d("MistralEngine", "Day mapped: $day -> $dayOfWeek")
 
                         // Vérifier que le jour fait partie des disponibilités
-                        if (dayOfWeek != null && availableDays.contains(dayOfWeek)) {
+                        if (dayOfWeek != null && availableDays.distinct().contains(dayOfWeek)) {
                             val workout = DailyWorkoutEntity(
                                 date = getNextDateForDay(dayOfWeek),
                                 sport = Sport.valueOf(sport),
@@ -371,13 +398,21 @@ class MistralEngine @Inject constructor() : AIEngine {
                                 targetValue = targetValue
                             )
                             workouts.add(workout)
+                            android.util.Log.d("MistralEngine", "✅ Workout added: $title for $dayOfWeek")
+                        } else {
+                            android.util.Log.w("MistralEngine", "❌ Day $dayOfWeek not in available days")
                         }
+                    } else {
+                        android.util.Log.w("MistralEngine", "❌ Missing required fields: day=$day, sport=$sport, targetType=$targetType")
                     }
                 } catch (e: Exception) {
                     // Ignorer les blocs mal formatés
-                    android.util.Log.w("MistralEngine", "Failed to parse workout block: ${e.message}")
+                    android.util.Log.e("MistralEngine", "❌ Failed to parse workout block $index: ${e.message}", e)
                 }
             }
+
+            android.util.Log.d("MistralEngine", "=== PARSING COMPLETE: ${workouts.size} workouts created ===")
+
 
         } catch (e: Exception) {
             // Parsing échoué, retourner liste vide
