@@ -58,7 +58,9 @@ class MistralEngine @Inject constructor() : AIEngine {
      * - Clé API valide
      */
     override suspend fun isAvailable(): Boolean {
-        return apiKey != "YOUR_MISTRAL_API_KEY" && apiKey.isNotEmpty()
+        val available = apiKey != "YOUR_MISTRAL_API_KEY" && apiKey.isNotEmpty()
+        android.util.Log.d("MistralEngine", "isAvailable() = $available (apiKey = ${apiKey.take(10)}...)")
+        return available
     }
 
     /**
@@ -66,8 +68,11 @@ class MistralEngine @Inject constructor() : AIEngine {
      */
     override suspend fun initialize(): Boolean {
         return try {
+            android.util.Log.d("MistralEngine", "initialize() called")
             // Vérifier que la clé API est configurée
-            isAvailable()
+            val result = isAvailable()
+            android.util.Log.d("MistralEngine", "initialize() result = $result")
+            result
         } catch (e: Exception) {
             android.util.Log.e("MistralEngine", "Initialization failed: ${e.message}", e)
             false
@@ -84,6 +89,8 @@ class MistralEngine @Inject constructor() : AIEngine {
         isFatigued: Boolean,
         needsProgression: Boolean
     ): List<DailyWorkoutEntity> {
+        android.util.Log.d("MistralEngine", "generateWeeklyWorkouts() called - vma=$vma, ftp=$ftp, availableDays=$availableDays")
+
         val prompt = buildWorkoutGenerationPrompt(
             vma, ftp, gender, hasPowerMeter,
             availableDays, averageRPE, isFatigued, needsProgression
