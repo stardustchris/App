@@ -21,14 +21,18 @@ android {
             useSupportLibrary = true
         }
 
-        // Load Gemini API Key from local.properties
+        // Load API Keys from local.properties
         val properties = java.util.Properties()
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             properties.load(localPropertiesFile.inputStream())
         }
 
-        // Inject API key into BuildConfig
+        // Inject Mistral API key into BuildConfig
+        val mistralApiKey = properties.getProperty("MISTRAL_API_KEY") ?: "YOUR_MISTRAL_API_KEY"
+        buildConfigField("String", "MISTRAL_API_KEY", "\"$mistralApiKey\"")
+
+        // Keep Gemini key for compatibility (not used)
         val geminiApiKey = properties.getProperty("GEMINI_API_KEY") ?: "YOUR_GEMINI_API_KEY"
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiApiKey\"")
     }

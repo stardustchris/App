@@ -1,6 +1,6 @@
 package com.enduranceflow.ai.domain
 
-import com.enduranceflow.ai.data.GeminiFlashEngine
+import com.enduranceflow.ai.data.MistralEngine
 import com.enduranceflow.ai.data.GeminiNanoEngine
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -10,13 +10,13 @@ import javax.inject.Singleton
  *
  * Tech Stack Rule (context.json) :
  * "Strategy Pattern: Priority = Gemini Nano (On-Device).
- *  Fallback = Gemini Flash API (Cloud)"
+ *  Fallback = Mistral AI (Cloud)"
  *
  * Responsabilités :
  * 1. Détecter la disponibilité de Gemini Nano sur l'appareil
  * 2. Choisir automatiquement le moteur approprié :
  *    - Gemini Nano si disponible (préféré)
- *    - Gemini Flash sinon (fallback)
+ *    - Mistral AI sinon (fallback)
  * 3. Initialiser le moteur sélectionné
  * 4. Gérer le basculement automatique si échec
  *
@@ -29,7 +29,7 @@ import javax.inject.Singleton
 @Singleton
 class AIEngineFactory @Inject constructor(
     private val geminiNanoEngine: GeminiNanoEngine,
-    private val geminiFlashEngine: GeminiFlashEngine
+    private val mistralEngine: MistralEngine
 ) {
 
     // Moteur IA actuellement actif
@@ -60,7 +60,7 @@ class AIEngineFactory @Inject constructor(
      *    - Vérifier disponibilité
      *    - Initialiser
      *    - Si succès → Utiliser Nano
-     * 2. Sinon, utiliser Gemini Flash (fallback)
+     * 2. Sinon, utiliser Mistral AI (fallback)
      *    - Initialiser
      *    - Toujours disponible si Internet actif
      *
@@ -76,21 +76,21 @@ class AIEngineFactory @Inject constructor(
             }
         }
 
-        // FALLBACK : Gemini Flash (cloud)
-        geminiFlashEngine.initialize()
-        activeEngine = geminiFlashEngine
-        return geminiFlashEngine
+        // FALLBACK : Mistral AI (cloud)
+        mistralEngine.initialize()
+        activeEngine = mistralEngine
+        return mistralEngine
     }
 
     /**
-     * Force le basculement vers Gemini Flash (utile pour debug/tests)
+     * Force le basculement vers Mistral AI (utile pour debug/tests)
      *
      * @return true si basculement réussi
      */
-    suspend fun forceFlashEngine(): Boolean {
+    suspend fun forceCloudEngine(): Boolean {
         return try {
-            geminiFlashEngine.initialize()
-            activeEngine = geminiFlashEngine
+            mistralEngine.initialize()
+            activeEngine = mistralEngine
             true
         } catch (e: Exception) {
             false
@@ -145,7 +145,7 @@ class AIEngineFactory @Inject constructor(
             "type" to engine.getEngineType().name,
             "isLocal" to isUsingLocalAI(),
             "nanoAvailable" to geminiNanoEngine.isAvailable(),
-            "flashAvailable" to geminiFlashEngine.isAvailable()
+            "mistralAvailable" to mistralEngine.isAvailable()
         )
     }
 }
