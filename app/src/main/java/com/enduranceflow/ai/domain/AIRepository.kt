@@ -51,13 +51,19 @@ class AIRepository @Inject constructor(
      */
     suspend fun generateWeeklyWorkouts(): List<DailyWorkoutEntity> {
         return try {
+            android.util.Log.d("AIRepository", "Starting workout generation")
+
             // 1. Récupérer le profil athlète
             val profile = profileRepository.getProfile().first()
-                ?: return emptyList() // Profil non créé
+            if (profile == null) {
+                android.util.Log.e("AIRepository", "Profile is null - cannot generate workouts")
+                return emptyList()
+            }
+            android.util.Log.d("AIRepository", "Profile loaded: VMA=${profile.vma}, FTP=${profile.ftp}, Gender=${profile.gender}")
 
             // 2. Vérifier si calibration complète
             if (profile.vma == null || profile.ftp == null) {
-                // TODO: Générer semaine de calibration (tests VMA/FTP)
+                android.util.Log.w("AIRepository", "VMA or FTP is null - calibration needed")
                 return emptyList()
             }
 
@@ -69,8 +75,10 @@ class AIRepository @Inject constructor(
             val availabilitySlots = availabilityRepository.getAllActiveSlots().first()
             val availableDays = if (availabilitySlots.isEmpty()) {
                 // Disponibilités par défaut si non configurées : Lundi, Mercredi, Vendredi
+                android.util.Log.d("AIRepository", "No availability slots found - using defaults: Mon, Wed, Fri")
                 listOf("MONDAY", "WEDNESDAY", "FRIDAY")
             } else {
+                android.util.Log.d("AIRepository", "Availability slots: ${availabilitySlots.map { it.dayOfWeek.name }}")
                 availabilitySlots.map { it.dayOfWeek.name }
             }
 
@@ -78,11 +86,15 @@ class AIRepository @Inject constructor(
             val averageRPE = workoutRepository.getAverageRPE(limit = 7)
             val isFatigued = workoutRepository.isFatigued(limit = 7)
             val needsProgression = workoutRepository.needsProgression(limit = 7)
+            android.util.Log.d("AIRepository", "Fatigue analysis: avgRPE=$averageRPE, fatigued=$isFatigued, needsProgress=$needsProgression")
 
             // 6. Obtenir le moteur IA (Nano ou Flash selon disponibilité)
+            android.util.Log.d("AIRepository", "Getting AI engine...")
             val aiEngine = aiEngineFactory.getEngine()
+            android.util.Log.d("AIRepository", "AI engine type: ${aiEngine.getEngineType()}")
 
             // 7. Générer les séances via l'IA
+            android.util.Log.d("AIRepository", "Calling AI engine to generate workouts...")
             val generatedWorkouts = aiEngine.generateWeeklyWorkouts(
                 vma = profile.vma,
                 ftp = profile.ftp,
@@ -94,15 +106,22 @@ class AIRepository @Inject constructor(
                 needsProgression = needsProgression
             )
 
+            android.util.Log.d("AIRepository", "AI returned ${generatedWorkouts.size} workouts")
+
             // 8. Enregistrer les séances en base de données
             if (generatedWorkouts.isNotEmpty()) {
-                workoutRepository.createWorkouts(generatedWorkouts)
+                android.util.Log.d("AIRepository", "Saving ${generatedWorkouts.size} workouts to database...")
+                val savedCount = workoutRepository.createWorkouts(generatedWorkouts)
+                android.util.Log.d("AIRepository", "Saved $savedCount workouts successfully")
+            } else {
+                android.util.Log.w("AIRepository", "No workouts to save - AI returned empty list")
             }
 
             generatedWorkouts
 
         } catch (e: Exception) {
             // Erreur IA → Retourner liste vide (ou séances par défaut)
+            android.util.Log.e("AIRepository", "Exception in generateWeeklyWorkouts", e)
             emptyList()
         }
     }

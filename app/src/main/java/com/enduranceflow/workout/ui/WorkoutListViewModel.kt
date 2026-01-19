@@ -208,19 +208,24 @@ class WorkoutListViewModel @Inject constructor(
      */
     fun generateWeeklyWorkouts() {
         viewModelScope.launch {
+            android.util.Log.d("WorkoutListViewModel", "generateWeeklyWorkouts() called - Starting workout generation")
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
                 // Appel à l'IA via AIRepository
+                android.util.Log.d("WorkoutListViewModel", "Calling aiRepository.generateWeeklyWorkouts()")
                 val generatedWorkouts = aiRepository.generateWeeklyWorkouts()
+                android.util.Log.d("WorkoutListViewModel", "Received ${generatedWorkouts.size} workouts from AI")
 
                 if (generatedWorkouts.isEmpty()) {
+                    android.util.Log.w("WorkoutListViewModel", "No workouts generated - showing error")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = "Aucune séance générée. Vérifie ton profil et tes disponibilités."
                     )
                 } else {
                     // Succès : les séances sont automatiquement affichées via le Flow
+                    android.util.Log.d("WorkoutListViewModel", "Workouts generated successfully")
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = null
@@ -228,6 +233,7 @@ class WorkoutListViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
+                android.util.Log.e("WorkoutListViewModel", "Error generating workouts", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = "Erreur lors de la génération: ${e.message}"
