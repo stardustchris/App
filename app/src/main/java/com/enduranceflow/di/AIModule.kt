@@ -1,7 +1,7 @@
 package com.enduranceflow.di
 
 import android.content.Context
-import com.enduranceflow.ai.data.GeminiFlashEngine
+import com.enduranceflow.ai.data.MistralEngine
 import com.enduranceflow.ai.data.GeminiNanoEngine
 import com.enduranceflow.ai.domain.AIEngine
 import com.enduranceflow.ai.domain.AIEngineFactory
@@ -20,7 +20,7 @@ import javax.inject.Singleton
  *
  * Fournit (Provides) :
  * 1. GeminiNanoEngine (IA locale)
- * 2. GeminiFlashEngine (IA cloud)
+ * 2. MistralEngine (IA cloud - Mistral AI français 🇫🇷)
  * 3. AIEngineFactory (sélection automatique)
  *
  * @Singleton : Instances uniques pour toute l'app (économie mémoire)
@@ -45,31 +45,31 @@ object AIModule {
     }
 
     /**
-     * Fournit l'instance de GeminiFlashEngine (IA cloud)
+     * Fournit l'instance de MistralEngine (IA cloud)
      *
-     * @return Instance singleton de GeminiFlashEngine
+     * @return Instance singleton de MistralEngine
      */
     @Provides
     @Singleton
-    fun provideGeminiFlashEngine(): GeminiFlashEngine {
-        return GeminiFlashEngine()
+    fun provideMistralEngine(): MistralEngine {
+        return MistralEngine()
     }
 
     /**
      * Fournit l'instance de AIEngineFactory (Strategy Pattern)
      *
-     * La factory choisit automatiquement entre Nano et Flash
+     * La factory choisit automatiquement entre Nano et Mistral
      *
      * @param nanoEngine Instance de GeminiNanoEngine
-     * @param flashEngine Instance de GeminiFlashEngine
+     * @param mistralEngine Instance de MistralEngine
      * @return Instance singleton de AIEngineFactory
      */
     @Provides
     @Singleton
     fun provideAIEngineFactory(
         nanoEngine: GeminiNanoEngine,
-        flashEngine: GeminiFlashEngine
+        mistralEngine: MistralEngine
     ): AIEngineFactory {
-        return AIEngineFactory(nanoEngine, flashEngine)
+        return AIEngineFactory(nanoEngine, mistralEngine)
     }
 }
