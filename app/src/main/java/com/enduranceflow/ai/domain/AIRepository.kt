@@ -221,10 +221,10 @@ class AIRepository @Inject constructor(
     /**
      * Retourne des informations sur le moteur IA actif
      *
-     * @return Map avec les détails (type, local/cloud, etc.)
+     * @return Map avec les détails (type, modèle, disponibilité)
      *
      * Utile pour afficher dans l'écran Profil :
-     * "Mode IA : Gemini Nano (Local)" ou "Mode IA : Gemini Flash (Cloud)"
+     * "Mode IA : Mistral AI (mistral-small-latest)"
      */
     suspend fun getAIEngineInfo(): Map<String, Any> {
         return aiEngineFactory.getEngineInfo()

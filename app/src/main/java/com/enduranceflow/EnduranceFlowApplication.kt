@@ -17,7 +17,7 @@ class EnduranceFlowApplication : Application() {
 
         // TODO: Initialiser les composants essentiels
         // - Vérifier la disponibilité de Health Connect
-        // - Détecter la disponibilité de Gemini Nano (AI locale)
+        // - Vérifier la connexion à Mistral AI
         // - Configurer les logs et le monitoring
     }
 }

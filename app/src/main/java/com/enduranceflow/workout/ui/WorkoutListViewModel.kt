@@ -189,7 +189,7 @@ class WorkoutListViewModel @Inject constructor(
     }
 
     /**
-     * Génère de nouvelles séances pour la semaine via l'IA Gemini
+     * Génère de nouvelles séances pour la semaine via Mistral AI
      *
      * L'IA génère des séances en tenant compte :
      * - Du profil athlète (VMA, FTP, Genre)
@@ -202,7 +202,7 @@ class WorkoutListViewModel @Inject constructor(
      * 1. Active le loading state
      * 2. Appelle AIRepository.generateWeeklyWorkouts()
      * 3. L'AIRepository récupère le profil, disponibilités, fatigue
-     * 4. L'AIEngineFactory sélectionne Gemini Nano ou Flash
+     * 4. L'AIEngineFactory utilise Mistral AI
      * 5. Les séances générées sont automatiquement sauvegardées en BDD
      * 6. Le Flow réactif met à jour l'UI automatiquement
      */

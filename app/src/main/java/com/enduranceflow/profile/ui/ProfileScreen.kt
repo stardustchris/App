@@ -261,13 +261,13 @@ fun ProfileScreen(
                         modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            text = "Mode : Gemini Flash (Cloud)",
+                            text = "Mode : Mistral AI 🇫🇷",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "L'IA locale (Gemini Nano) sera disponible prochainement sur les appareils compatibles",
+                            text = "IA cloud française avec excellente compréhension du français",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onTertiaryContainer
                         )
