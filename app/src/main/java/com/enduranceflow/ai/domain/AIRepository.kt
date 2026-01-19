@@ -231,31 +231,9 @@ class AIRepository @Inject constructor(
     }
 
     /**
-     * Vérifie si l'IA locale (Gemini Nano) est active
+     * Réinitialise le moteur IA (Mistral)
      *
-     * @return true si IA locale, false si cloud
-     */
-    fun isUsingLocalAI(): Boolean {
-        return aiEngineFactory.isUsingLocalAI()
-    }
-
-    /**
-     * Force le basculement vers l'IA cloud (Gemini Flash)
-     *
-     * Cas d'usage :
-     * - L'utilisateur préfère le mode cloud (modèle plus puissant)
-     * - Debug/test
-     *
-     * @return true si basculement réussi
-     */
-    suspend fun forceCloudAI(): Boolean {
-        return aiEngineFactory.forceFlashEngine()
-    }
-
-    /**
-     * Réinitialise le moteur IA
-     *
-     * Redétecte automatiquement le moteur approprié (Nano → Flash)
+     * Force une reconnexion à Mistral AI
      */
     suspend fun resetAIEngine() {
         aiEngineFactory.resetEngine()
