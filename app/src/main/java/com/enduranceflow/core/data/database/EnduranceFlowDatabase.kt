@@ -23,13 +23,13 @@ import com.enduranceflow.workout.data.entity.SessionFeedbackEntity
  * - Aucune donnée personnelle envoyée au Cloud (Privacy-First)
  *
  * Entités incluses :
- * 1. AthleteProfileEntity - Profil athlète (VMA, FTP, Gender, etc.)
+ * 1. AthleteProfileEntity - Profil athlète (VMA, FTP, Gender, Age, Weight, Height, etc.)
  * 2. EquipmentConfigEntity - Configuration équipement (capteurs)
  * 3. DailyWorkoutEntity - Séances d'entraînement
  * 4. AvailabilitySlotEntity - Créneaux de disponibilité
  * 5. SessionFeedbackEntity - Feedbacks post-séance (RPE)
  *
- * Version : 1
+ * Version : 2 (ajout de age, weight, height à AthleteProfile)
  * Si modification du schéma → Incrémenter version + Migration
  */
 @Database(
@@ -40,7 +40,7 @@ import com.enduranceflow.workout.data.entity.SessionFeedbackEntity
         AvailabilitySlotEntity::class,
         SessionFeedbackEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
