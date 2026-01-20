@@ -84,19 +84,16 @@ class WorkoutListViewModel @Inject constructor(
      * "Je peux basculer une séance en mode 'Intérieur' :
      *  les cibles changent (Vitesse → Tapis, Allure → Watts/Cardio)."
      *
-     * Impact sur TargetType :
+     * Impact sur TargetType (recalculé automatiquement par le Repository) :
      * - Running Outdoor : PACE (allure min/km)
      * - Running Indoor : SPEED (vitesse km/h)
      * - Cycling avec capteur : POWER (Watts)
      * - Cycling sans capteur : HEART_RATE (bpm)
-     *
-     * TODO: Implémenter le recalcul automatique du TargetType
      */
     fun toggleIndoorMode(workoutId: Long, isIndoor: Boolean) {
         viewModelScope.launch {
             try {
                 workoutRepository.toggleIndoorMode(workoutId, isIndoor)
-                // TODO: Recalculer le TargetType et la valeur cible selon le mode
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     error = "Erreur lors du changement de mode: ${e.message}"

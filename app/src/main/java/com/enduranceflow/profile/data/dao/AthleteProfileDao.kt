@@ -74,6 +74,15 @@ interface AthleteProfileDao {
     suspend fun profileExists(): Boolean
 
     /**
+     * Récupère le profil de manière synchrone (non-Flow)
+     * Utilisé pour les vérifications ponctuelles (ex: needsCalibration)
+     *
+     * @return AthleteProfileEntity? - null si pas encore créé
+     */
+    @Query("SELECT * FROM athlete_profile WHERE id = 1")
+    suspend fun getProfileSync(): AthleteProfileEntity?
+
+    /**
      * Supprime le profil (pour debug/reset uniquement)
      */
     @Query("DELETE FROM athlete_profile")

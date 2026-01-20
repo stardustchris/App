@@ -2,6 +2,7 @@ package com.enduranceflow.workout.domain.repository
 
 import com.enduranceflow.core.domain.model.Sport
 import com.enduranceflow.core.domain.model.TargetType
+import com.enduranceflow.profile.domain.repository.ProfileRepository
 import com.enduranceflow.workout.data.dao.DailyWorkoutDao
 import com.enduranceflow.workout.data.dao.SessionFeedbackDao
 import com.enduranceflow.workout.data.entity.DailyWorkoutEntity
@@ -24,7 +25,8 @@ import javax.inject.Singleton
 @Singleton
 class WorkoutRepository @Inject constructor(
     private val dailyWorkoutDao: DailyWorkoutDao,
-    private val sessionFeedbackDao: SessionFeedbackDao
+    private val sessionFeedbackDao: SessionFeedbackDao,
+    private val profileRepository: ProfileRepository
 ) {
 
     // ========== DailyWorkout ==========
@@ -134,15 +136,43 @@ class WorkoutRepository @Inject constructor(
      * "Je peux basculer une séance en mode 'Intérieur' :
      *  les cibles changent (Vitesse → Tapis, Allure → Watts/Cardio)."
      *
-     * TODO: Recalculer automatiquement le TargetType selon :
+     * Recalcule automatiquement le TargetType selon :
      * - Running Outdoor : PACE (min/km)
      * - Running Indoor : SPEED (km/h sur tapis)
      * - Cycling avec capteur : POWER (Watts)
      * - Cycling sans capteur : HEART_RATE (bpm)
      */
     suspend fun toggleIndoorMode(workoutId: Long, isIndoor: Boolean) {
+        // 1. Basculer le mode Indoor/Outdoor
         dailyWorkoutDao.toggleIndoorMode(workoutId, isIndoor)
-        // TODO: Recalculer le TargetType selon le sport et l'équipement
+
+        // 2. Récupérer la séance pour connaître le sport
+        val workout = dailyWorkoutDao.getWorkoutByIdSync(workoutId) ?: return
+
+        // 3. Recalculer le TargetType selon le sport, le mode et l'équipement
+        val newTargetType = calculateTargetType(workout.sport, isIndoor)
+
+        // 4. Mettre à jour le TargetType
+        dailyWorkoutDao.updateTargetType(workoutId, newTargetType)
+    }
+
+    /**
+     * Calcule le TargetType approprié selon le sport, le mode et l'équipement
+     *
+     * @param sport Sport de la séance (RUNNING/CYCLING)
+     * @param isIndoor Mode indoor activé
+     * @return TargetType adapté
+     */
+    private suspend fun calculateTargetType(sport: Sport, isIndoor: Boolean): TargetType {
+        return when (sport) {
+            Sport.RUNNING -> {
+                if (isIndoor) TargetType.SPEED else TargetType.PACE
+            }
+            Sport.CYCLING -> {
+                val hasPowerMeter = profileRepository.hasPowerMeter()
+                if (hasPowerMeter) TargetType.POWER else TargetType.HEART_RATE
+            }
+        }
     }
 
     /**

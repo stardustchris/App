@@ -1,6 +1,7 @@
 package com.enduranceflow.workout.data.dao
 
 import androidx.room.*
+import com.enduranceflow.core.domain.model.TargetType
 import com.enduranceflow.workout.data.entity.DailyWorkoutEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -97,6 +98,27 @@ interface DailyWorkoutDao {
      */
     @Query("UPDATE daily_workout SET isIndoor = :isIndoor WHERE id = :workoutId")
     suspend fun toggleIndoorMode(workoutId: Long, isIndoor: Boolean)
+
+    /**
+     * Met à jour le TargetType d'une séance
+     *
+     * @param workoutId ID de la séance
+     * @param targetType Nouveau type de cible
+     *
+     * Utilisé lors du basculement Indoor/Outdoor pour adapter
+     * le type de cible selon le sport et l'équipement
+     */
+    @Query("UPDATE daily_workout SET targetType = :targetType WHERE id = :workoutId")
+    suspend fun updateTargetType(workoutId: Long, targetType: TargetType)
+
+    /**
+     * Récupère une séance de manière synchrone (non-Flow)
+     *
+     * @param workoutId ID de la séance
+     * @return DailyWorkoutEntity? - null si non trouvée
+     */
+    @Query("SELECT * FROM daily_workout WHERE id = :workoutId")
+    suspend fun getWorkoutByIdSync(workoutId: Long): DailyWorkoutEntity?
 
     /**
      * Supprime les séances anciennes (plus de 30 jours)

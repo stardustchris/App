@@ -111,10 +111,11 @@ class ProfileRepository @Inject constructor(
      *  (lancer le protocole de test)."
      */
     suspend fun needsCalibration(): Boolean {
-        val profile = athleteProfileDao.getProfile()
-        // TODO: Récupérer la valeur actuelle et vérifier si vma == null || ftp == null
-        // Pour l'instant, on retourne true si le profil n'existe pas
-        return !athleteProfileDao.profileExists()
+        val profile = athleteProfileDao.getProfileSync()
+        // Si le profil n'existe pas, calibration nécessaire
+        if (profile == null) return true
+        // Calibration nécessaire si VMA ou FTP non renseignés
+        return profile.vma == null || profile.ftp == null
     }
 
     // ========== EquipmentConfig ==========
