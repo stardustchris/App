@@ -14,9 +14,10 @@ import com.enduranceflow.core.domain.model.Gender
  * - FTP (Functional Threshold Power) en Watts
  * - MaxHR (Fréquence Cardiaque Maximale) en bpm
  * - Gender (pour adaptation du ton de l'IA)
+ * - Age, Poids, Taille (pour personnalisation)
  *
  * Core Entity (context.json) :
- * "AthleteProfile (Gender, VMA, FTP, MaxHR)"
+ * "AthleteProfile (Gender, VMA, FTP, MaxHR, Age, Weight, Height)"
  *
  * Note : Un seul profil par utilisateur (id = 1)
  */
@@ -51,6 +52,27 @@ data class AthleteProfileEntity(
      * null si pas encore déterminée
      */
     val maxHR: Int?,
+
+    /**
+     * Âge de l'athlète en années
+     * Exemple : 35
+     * null si non renseigné
+     */
+    val age: Int? = null,
+
+    /**
+     * Poids de l'athlète en kilogrammes
+     * Exemple : 75.5
+     * null si non renseigné
+     */
+    val weight: Double? = null,
+
+    /**
+     * Taille de l'athlète en centimètres
+     * Exemple : 175
+     * null si non renseigné
+     */
+    val height: Int? = null,
 
     /**
      * Timestamp de création du profil

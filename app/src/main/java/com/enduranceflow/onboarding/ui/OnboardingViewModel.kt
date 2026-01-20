@@ -102,6 +102,49 @@ class OnboardingViewModel @Inject constructor(
     }
 
     /**
+     * Enregistre les données de profil personnel
+     *
+     * @param age Âge en années
+     * @param weight Poids en kg
+     * @param height Taille en cm
+     * @param maxHR FC Max en bpm (nullable)
+     */
+    fun onPersonalProfileEntered(age: Int, weight: Double, height: Int, maxHR: Int?) {
+        _uiState.value = _uiState.value.copy(
+            age = age,
+            weight = weight,
+            height = height,
+            maxHR = maxHR
+        )
+    }
+
+    /**
+     * Enregistre l'objectif sélectionné
+     *
+     * @param goal L'objectif d'entraînement
+     */
+    fun onGoalSelected(goal: TrainingGoal) {
+        _uiState.value = _uiState.value.copy(selectedGoal = goal)
+    }
+
+    /**
+     * Enregistre les détails de l'événement cible
+     *
+     * @param eventType Type d'événement (Marathon, 10k, etc.)
+     * @param eventDate Date au format YYYY-MM-DD
+     * @param eventName Nom de l'événement (nullable)
+     * @param distance Distance en km
+     */
+    fun onTargetEventEntered(eventType: EventType, eventDate: String, eventName: String?, distance: Double) {
+        _uiState.value = _uiState.value.copy(
+            targetEventType = eventType,
+            targetEventDate = eventDate,
+            targetEventName = eventName,
+            targetEventDistance = distance
+        )
+    }
+
+    /**
      * Finalise l'onboarding et crée le profil initial
      *
      * Actions :
@@ -119,12 +162,15 @@ class OnboardingViewModel @Inject constructor(
             try {
                 val state = _uiState.value
 
-                // 1. Créer le profil athlète
+                // 1. Créer le profil athlète avec toutes les données collectées
                 profileRepository.saveProfile(
                     gender = state.selectedGender ?: Gender.MALE,
                     vma = state.knownVMA,
                     ftp = state.knownFTP,
-                    maxHR = null
+                    maxHR = state.maxHR,
+                    age = state.age,
+                    weight = state.weight,
+                    height = state.height
                 )
 
                 // 2. Créer la configuration équipement
@@ -166,15 +212,38 @@ class OnboardingViewModel @Inject constructor(
 /**
  * État de l'UI pour l'écran Onboarding
  *
- * Contient toutes les données nécessaires pour afficher l'écran
+ * Contient toutes les données nécessaires pour afficher les écrans
+ * et créer le profil complet de l'athlète
  */
 data class OnboardingUiState(
+    // Écran 1: Genre + Équipement + VMA/FTP
     val selectedGender: Gender? = null,
     val hasPowerMeter: Boolean = false,
-    val selectedSports: Set<Sport> = emptySet(),
-    val selectedDays: Set<DayOfWeek> = emptySet(),
     val knownVMA: Double? = null,
     val knownFTP: Int? = null,
+
+    // Écran 2: Profil personnel
+    val age: Int? = null,
+    val weight: Double? = null,
+    val height: Int? = null,
+    val maxHR: Int? = null,
+
+    // Écran 3: Sports pratiqués
+    val selectedSports: Set<Sport> = emptySet(),
+
+    // Écran 4: Objectif
+    val selectedGoal: TrainingGoal? = null,
+
+    // Écran 5: Événement cible (si compétition)
+    val targetEventType: EventType? = null,
+    val targetEventDate: String? = null,
+    val targetEventName: String? = null,
+    val targetEventDistance: Double? = null,
+
+    // Écran 6: Disponibilités
+    val selectedDays: Set<DayOfWeek> = emptySet(),
+
+    // État du chargement et erreurs
     val isLoading: Boolean = false,
     val error: String? = null
 )

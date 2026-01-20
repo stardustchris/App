@@ -44,18 +44,27 @@ class ProfileRepository @Inject constructor(
      * @param vma VMA en km/h (nullable si pas encore testé)
      * @param ftp FTP en Watts (nullable si pas encore testé)
      * @param maxHR FC Max en bpm (nullable)
+     * @param age Âge en années (nullable)
+     * @param weight Poids en kg (nullable)
+     * @param height Taille en cm (nullable)
      */
     suspend fun saveProfile(
         gender: Gender,
         vma: Double? = null,
         ftp: Int? = null,
-        maxHR: Int? = null
+        maxHR: Int? = null,
+        age: Int? = null,
+        weight: Double? = null,
+        height: Int? = null
     ) {
         val profile = AthleteProfileEntity(
             gender = gender,
             vma = vma,
             ftp = ftp,
             maxHR = maxHR,
+            age = age,
+            weight = weight,
+            height = height,
             updatedAt = System.currentTimeMillis()
         )
         athleteProfileDao.insertOrUpdateProfile(profile)
