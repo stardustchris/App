@@ -124,11 +124,25 @@ fun AvailabilityConfigScreen(
 
         // Bouton Continuer
         Button(
-            onClick = { onNavigateNext() },
+            onClick = {
+                // Finaliser l'onboarding et créer le profil complet
+                viewModel.completeOnboarding { needsCalibration ->
+                    // Pour l'instant, on ignore la calibration et on va directement aux workouts
+                    // TODO: Implémenter la navigation vers calibration si nécessaire
+                    onNavigateNext()
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
-            enabled = uiState.selectedDays.isNotEmpty()
+            enabled = uiState.selectedDays.isNotEmpty() && !uiState.isLoading
         ) {
-            Text("Continuer")
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            Text("Terminer")
         }
 
         Spacer(modifier = Modifier.height(32.dp))

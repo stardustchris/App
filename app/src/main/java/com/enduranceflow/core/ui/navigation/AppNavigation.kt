@@ -4,9 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.enduranceflow.onboarding.ui.OnboardingScreen
-import com.enduranceflow.onboarding.ui.SportsSelectionScreen
-import com.enduranceflow.onboarding.ui.AvailabilityConfigScreen
+import com.enduranceflow.onboarding.ui.*
 import com.enduranceflow.calibration.ui.CalibrationScreen
 import com.enduranceflow.workout.ui.WorkoutListScreen
 import com.enduranceflow.profile.ui.ProfileScreen
@@ -29,45 +27,81 @@ fun AppNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Onboarding.route
+        startDestination = Screen.Welcome.route
     ) {
-        // 🎯 Écran 1 : Onboarding (genre + équipement + VMA/FTP)
+        // 👋 Écran 1 : Welcome - Présentation de l'app
+        composable(route = Screen.Welcome.route) {
+            WelcomeScreen(
+                onNavigateNext = {
+                    navController.navigate(Screen.PersonalProfile.route)
+                }
+            )
+        }
+
+        // 📊 Écran 2 : Personal Profile - Âge, poids, taille, FC Max
+        composable(route = Screen.PersonalProfile.route) {
+            PersonalProfileScreen(
+                onNavigateNext = {
+                    navController.navigate(Screen.Onboarding.route)
+                }
+            )
+        }
+
+        // 🎯 Écran 3 : Onboarding - Genre + Équipement + VMA/FTP (optionnel)
         composable(route = Screen.Onboarding.route) {
             OnboardingScreen(
                 onNavigateToCalibration = {
-                    // Ne sera plus utilisé, on passe toujours par Sports Selection
-                    navController.navigate(Screen.SportsSelection.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = false }
-                    }
+                    // Continue to sports selection, calibration will come later if needed
+                    navController.navigate(Screen.SportsSelection.route)
                 },
                 onNavigateToWorkouts = {
-                    // Passer par Sports Selection au lieu d'aller directement aux workouts
-                    navController.navigate(Screen.SportsSelection.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = false }
-                    }
+                    // Continue to sports selection
+                    navController.navigate(Screen.SportsSelection.route)
                 }
             )
         }
 
-        // 🏃🚴 Écran 2 : Sélection des sports
+        // 🏃🚴 Écran 4 : Sports Selection - Course, Vélo, ou les deux
         composable(route = Screen.SportsSelection.route) {
             SportsSelectionScreen(
                 onNavigateNext = {
-                    navController.navigate(Screen.AvailabilityConfig.route) {
-                        popUpTo(Screen.SportsSelection.route) { inclusive = false }
+                    navController.navigate(Screen.GoalsSelection.route)
+                }
+            )
+        }
+
+        // 🎖️ Écran 5 : Goals Selection - Compétition, Forme, Perte de poids, Maintenance
+        composable(route = Screen.GoalsSelection.route) {
+            GoalsSelectionScreen(
+                onNavigateNext = { hasCompetition ->
+                    if (hasCompetition) {
+                        // Si compétition choisie → écran événement cible
+                        navController.navigate(Screen.TargetEvent.route)
+                    } else {
+                        // Sinon → disponibilités directement
+                        navController.navigate(Screen.AvailabilityConfig.route)
                     }
                 }
             )
         }
 
-        // 📅 Écran 3 : Configuration des disponibilités
+        // 🏁 Écran 6 : Target Event - Détails de la compétition (conditionnel)
+        composable(route = Screen.TargetEvent.route) {
+            TargetEventScreen(
+                onNavigateNext = {
+                    navController.navigate(Screen.AvailabilityConfig.route)
+                }
+            )
+        }
+
+        // 📅 Écran 7 : Availability Config - Jours disponibles
         composable(route = Screen.AvailabilityConfig.route) {
             AvailabilityConfigScreen(
                 onNavigateNext = {
-                    // Vérifier si calibration nécessaire (via ViewModel)
-                    // Pour l'instant, aller directement aux workouts
+                    // Finaliser l'onboarding et créer le profil
                     navController.navigate(Screen.WorkoutList.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                        // Clear entire backstack - prevent going back to onboarding
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
                     }
                 }
             )
@@ -108,10 +142,18 @@ fun AppNavigation() {
  * Définition des routes de navigation
  *
  * Sealed class pour garantir la sécurité de type (pas d'erreur de route)
+ *
+ * Onboarding flow (7+ screens):
+ * Welcome → PersonalProfile → Onboarding → SportsSelection → GoalsSelection
+ * → (TargetEvent if competition) → AvailabilityConfig → WorkoutList
  */
 sealed class Screen(val route: String) {
+    data object Welcome : Screen("welcome")
+    data object PersonalProfile : Screen("personal_profile")
     data object Onboarding : Screen("onboarding")
     data object SportsSelection : Screen("sports_selection")
+    data object GoalsSelection : Screen("goals_selection")
+    data object TargetEvent : Screen("target_event")
     data object AvailabilityConfig : Screen("availability_config")
     data object Calibration : Screen("calibration")
     data object WorkoutList : Screen("workout_list")
